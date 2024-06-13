@@ -30,11 +30,7 @@ def get_new_version(repo: git.Repo) -> str:
     latest_tag = max(repo.tags, key=operator.attrgetter("commit.committed_datetime"))
     last_version = version.parse(latest_tag.name)
     now = datetime.datetime.now(tz=datetime.timezone.utc)
-    patch = (
-        last_version.micro + 1
-        if last_version.major == now.year and last_version.minor == now.month
-        else 0
-    )
+    patch = last_version.micro + 1 if last_version.major == now.year and last_version.minor == now.month else 0
     return f"{now.year}.{now.month}.{patch}"
 
 

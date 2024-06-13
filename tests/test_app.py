@@ -4,11 +4,15 @@ from __future__ import annotations
 
 import os
 import tempfile
-from unittest.mock import mock_open, patch, MagicMock
+from typing import TYPE_CHECKING
+from unittest.mock import MagicMock, mock_open, patch
 
 import pyperclip
 
 import clip_files
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 def test_get_token_count() -> None:
@@ -40,27 +44,65 @@ def test_get_files_with_extension() -> None:
         assert file_contents[0].startswith("# File:"), "File content should start with # File:"
 
 
-@patch("builtins.open", new_callable=mock_open, read_data="Initial instructions")
-def test_main_with_initial_file(mock_file):
-    """Test the main function with an initial file provided."""
-    with tempfile.TemporaryDirectory() as temp_dir:
-        file_path = os.path.join(temp_dir, "test.py")
-        with open(file_path, "w", encoding="utf-8") as f:
-            f.write("print('Hello, world!')\n")
-        
-        initial_file_path = os.path.join(temp_dir, "initial.txt")
-        with open(initial_file_path, "w", encoding="utf-8") as f:
-            f.write("These are initial instructions.\n")
+@patch("builtins.open", new_callable=mock_open, read_data="These are initial instructions.\n")
+def test_generate_combined_content_with_initial_file(mock_file: MagicMock, tmp_path: Path) -> None:  # noqa: ARG001
+    """Test the generate_combined_content function with an initial file provided."""
+    # Create a test Python file in the temporary directory
+    file_path = tmp_path / "test.py"
+    file_path.write_text("print('Hello, world!')\n", encoding="utf-8")
 
-        args = [temp_dir, ".py", "--initial-file", initial_file_path]
+    # Create an initial instructions file in the temporary directory
+    initial_file_path = tmp_path / "initial.txt"
+    initial_file_path.write_text("These are initial instructions.\n", encoding="utf-8")
 
-        with patch("sys.argv", ["clip_files.py"] + args):
-            clip_files.main()
+    # Call the generate_combined_content function
+    combined_content, total_tokens = clip_files.generate_combined_content(
+        folder_path=str(tmp_path),
+        file_extension=".py",
+        initial_file_path=str(initial_file_path),
+    )
 
-        clipboard_content = pyperclip.paste()
-        assert "These are initial instructions." in clipboard_content, "Initial instructions should be included"
-        assert "# File:" in clipboard_content, "File content should be included"
-        assert "My question is:" in clipboard_content, "Question prompt should be at the end"
+    # Verify the combined content includes the initial instructions
+    assert "These are initial instructions." in combined_content, combined_content
+    assert "# File:" in combined_content, "File content should be included"
+    assert "test.py" in combined_content, "File path should be included in the combined content"
+    assert "print('Hello, world!')" in combined_content, "File content should be included in the combined content"
+    assert "My question is:" in combined_content, "Question prompt should be at the end"
+
+    # Copy the combined content to clipboard for further verification
+    pyperclip.copy(combined_content)
+    clipboard_content = pyperclip.paste()
+
+    assert clipboard_content == combined_content, "Clipboard content should match the combined content generated"
+
+    # Ensure total tokens are counted correctly
+    assert total_tokens > 0, "Total tokens should be a positive integer"
+
+
+def test_generate_combined_content_without_initial_file(tmp_path: Path) -> None:
+    """Test the generate_combined_content function without an initial file provided."""
+    # Create a test Python file in the temporary directory
+    file_path = tmp_path / "test.py"
+    file_path.write_text("print('Hello, world!')\n", encoding="utf-8")
+
+    # Call the generate_combined_content function
+    combined_content, total_tokens = clip_files.generate_combined_content(folder_path=str(tmp_path), file_extension=".py")
+
+    # Verify the combined content includes the default initial message
+    assert "Hello! Below are the code files from my project" in combined_content, "Default initial message should be included"
+    assert "# File:" in combined_content, "File content should include file path and content"
+    assert "test.py" in combined_content, "File path should be included in the combined content"
+    assert "print('Hello, world!')" in combined_content, "File content should be included in the combined content"
+    assert "My question is:" in combined_content, "Question prompt should be at the end"
+
+    # Copy the combined content to clipboard for further verification
+    pyperclip.copy(combined_content)
+    clipboard_content = pyperclip.paste()
+
+    assert clipboard_content == combined_content, "Clipboard content should match the combined content generated"
+
+    # Ensure total tokens are counted correctly
+    assert total_tokens > 0, "Total tokens should be a positive integer"
 
 
 def test_main_without_initial_file() -> None:
