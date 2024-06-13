@@ -109,6 +109,8 @@ def main() -> None:
 
     combined_content = combined_initial_message + "\n\n" + "\n\n".join(file_contents)
 
+    combined_content += "\n\n This was the last file in my project. My question is:"
+
     pyperclip.copy(combined_content)
     print("The collected file contents have been copied to the clipboard.")
     print(f"Total number of tokens used: {total_tokens}")
