@@ -16,9 +16,9 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install xsel on Ubuntu
+      - name: Install gtk on Ubuntu
         if: matrix.os == 'ubuntu-latest'
-        run: sudo apt-get install xsel
+        run: pip install gtk
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
