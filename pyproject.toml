@@ -7,7 +7,7 @@ name = "clip-files"
 description = "clip-files copies."
 dynamic = ["version"]
 authors = [{ name = "Bas Nijholt", email = "bas@nijho.lt" }]
-dependencies = []
+dependencies = ["pyperclip"]
 requires-python = ">=3.7"
 
 [project.readme]
@@ -42,9 +42,6 @@ exclude_lines = [
     "if TYPE_CHECKING:",
     "if __name__ == .__main__.:",
 ]
-
-[tool.black]
-line_length = 88
 
 [tool.ruff]
 line-length = 150
