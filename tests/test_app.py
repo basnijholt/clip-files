@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 import tempfile
 from typing import TYPE_CHECKING
-from unittest.mock import MagicMock, mock_open, patch
+from unittest.mock import patch
 
 import pyperclip
 
@@ -44,8 +44,7 @@ def test_get_files_with_extension() -> None:
         assert file_contents[0].startswith("# File:"), "File content should start with # File:"
 
 
-@patch("builtins.open", new_callable=mock_open, read_data="These are initial instructions.\n")
-def test_generate_combined_content_with_initial_file(mock_file: MagicMock, tmp_path: Path) -> None:  # noqa: ARG001
+def test_generate_combined_content_with_initial_file(tmp_path: Path) -> None:
     """Test the generate_combined_content function with an initial file provided."""
     # Create a test Python file in the temporary directory
     file_path = tmp_path / "test.py"
