@@ -15,12 +15,12 @@ def get_token_count(text: str, model: str = "gpt-4") -> int:
 
     Args:
     ----
-        text (str): The text to be tokenized.
-        model (str): The model to use for tokenization. Default is "gpt-4".
+        text: The text to be tokenized.
+        model: The model to use for tokenization. Default is "gpt-4".
 
     Returns:
     -------
-        int: The number of tokens in the text.
+        The number of tokens in the text.
 
     """
     encoding = tiktoken.encoding_for_model(model)
@@ -33,12 +33,12 @@ def get_files_with_extension(folder_path: str, file_extension: str) -> tuple[lis
 
     Args:
     ----
-        folder_path (str): The folder to search for files.
-        file_extension (str): The file extension to look for.
+        folder_path: The folder to search for files.
+        file_extension: The file extension to look for.
 
     Returns:
     -------
-        tuple[list[str], int]: A tuple containing a list of formatted file contents and the total token count.
+        A tuple containing a list of formatted file contents and the total token count.
 
     """
     file_contents = []
