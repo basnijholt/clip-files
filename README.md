@@ -18,13 +18,13 @@ Makes it simple to paste in your entire project into e.g., ChatGPT or Claude.ai,
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-- [Features](#star2-features)
-- [Usage](#books-usage)
-- [Installation](#hammer_and_wrench-installation)
-- [Examples](#bulb-examples)
-- [Supported File Types](#file_folder-supported-file-types)
-- [Token Counting](#1234-token-counting)
-- [Support and Contributions](#heart-support-and-contributions)
+- [:star2: Features](#star2-features)
+- [:books: Usage](#books-usage)
+- [:hammer_and_wrench: Installation](#hammer_and_wrench-installation)
+- [:bulb: Examples](#bulb-examples)
+- [:file_folder: Supported File Types](#file_folder-supported-file-types)
+- [:1234: Token Counting](#1234-token-counting)
+- [:heart: Support and Contributions](#heart-support-and-contributions)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
