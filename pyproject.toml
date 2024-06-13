@@ -7,7 +7,7 @@ name = "clip-files"
 description = "clip-files copies."
 dynamic = ["version"]
 authors = [{ name = "Bas Nijholt", email = "bas@nijho.lt" }]
-dependencies = ["pyperclip", "tiktoken"]
+dependencies = ["pyperclip", "tiktoken", "xclip; platform_system=='Linux'"]
 requires-python = ">=3.8"
 
 [project.readme]
