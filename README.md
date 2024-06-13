@@ -47,9 +47,9 @@ clip-files --help
 Shows the help message:
 
 <!-- CODE:BASH:START -->
-```bash
-clip-files --help
-```
+<!-- echo '```bash' -->
+<!-- clip-files --help -->
+<!-- echo '```' -->
 <!-- CODE:END -->
 
 <!-- OUTPUT:START -->
