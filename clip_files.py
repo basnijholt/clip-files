@@ -149,7 +149,8 @@ def generate_combined_content_with_specific_files(
     # Process each specified file
     for file_path in file_paths:
         if not os.path.isfile(file_path):
-            raise ValueError(f"Specified file '{file_path}' does not exist.")
+            msg = f"Specified file '{file_path}' does not exist."
+            raise ValueError(msg)
 
         with open(file_path, encoding="utf-8") as f:
             content = f.read()
@@ -215,7 +216,8 @@ def main() -> None:
         "--files",
         nargs="+",
         default=None,
-        help="Specific file paths to include (e.g., --files path/to/file1.py path/to/file2.md). If not provided, all files with the specified extension are included.",
+        help="Specific file paths to include (e.g., --files path/to/file1.py path/to/file2.md)."
+        " If not provided, all files with the specified extension are included.",
     )
     args = parser.parse_args()
 
