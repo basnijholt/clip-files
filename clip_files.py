@@ -194,7 +194,7 @@ _DOC = """
 Collect files with a specific extension or specific files, format them for clipboard, and count tokens.
 
 Some examples are:
-1. Collect all `.py` files in the `src` directory: `clip-files src .py`.
+1. Collect all `.py` files in the `src` directory: `clip-files src .py` or with a glob `clip-files --files src/*.py`.
 2. Collect `.txt` files in `documents` and count tokens: `clip-files documents .txt`.
 3. Collect specific files (can be of different types): `clip-files --files src/main.py tests/test_app.py docs/README.md`.
 4. Use an initial file with custom instructions and collect specific files: `clip-files --initial-file instructions.txt --files src/main.py src/utils.py`.
