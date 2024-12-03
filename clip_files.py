@@ -190,7 +190,9 @@ def generate_combined_content_with_specific_files(
     return combined_content, total_tokens
 
 
-_EXAMPLES = """
+_DOC = """
+Collect files with a specific extension or specific files, format them for clipboard, and count tokens
+
 * Collect all `.py` files in the `src` directory:
 ```
 clip-files src .py
@@ -218,9 +220,7 @@ def main() -> None:
 
     Parses command-line arguments, collects and formats files, and copies the result to the clipboard.
     """
-    parser = argparse.ArgumentParser(
-        description="Collect files with a specific extension or specific files, format them for clipboard, and count tokens. \n\n" + _EXAMPLES,
-    )
+    parser = argparse.ArgumentParser(description=_DOC)
     # Make 'folder' and 'extension' optional positional arguments
     parser.add_argument("folder", type=str, nargs="?", help="The folder to search for files.")
     parser.add_argument(
