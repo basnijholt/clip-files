@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 from unittest.mock import patch
 
 import pyperclip
+import pytest
 
 import clip_files
 
@@ -166,3 +167,92 @@ def test_generate_combined_content_with_selected_files(tmp_path: Path) -> None:
     clipboard_content = pyperclip.paste()
 
     assert clipboard_content == combined_content, "Clipboard content should match the combined content generated"
+
+
+def test_invalid_directory() -> None:
+    """Test generate_combined_content with an invalid directory."""
+    with pytest.raises(ValueError, match="is not a valid directory"):
+        clip_files.generate_combined_content("/nonexistent/path", ".py")
+
+
+def test_no_matching_files() -> None:
+    """Test generate_combined_content when no matching files are found."""
+    with tempfile.TemporaryDirectory() as temp_dir, pytest.raises(ValueError, match="No files with extension .xyz found"):
+        clip_files.generate_combined_content(temp_dir, ".xyz")
+
+
+def test_no_matching_selected_files() -> None:
+    """Test generate_combined_content when no matching selected files are found."""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        file_path = os.path.join(temp_dir, "test.py")
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write("print('test')")
+
+        with pytest.raises(ValueError, match="No specified files with extension .py found"):
+            clip_files.generate_combined_content(temp_dir, ".py", selected_files=["nonexistent.py"])
+
+
+def test_generate_combined_content_with_specific_files() -> None:
+    """Test generate_combined_content_with_specific_files function."""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        # Create test files
+        file1_path = os.path.join(temp_dir, "test1.py")
+        file2_path = os.path.join(temp_dir, "test2.txt")
+
+        with open(file1_path, "w", encoding="utf-8") as f1:
+            f1.write("print('test1')")
+        with open(file2_path, "w", encoding="utf-8") as f2:
+            f2.write("test2 content")
+
+        # Test with multiple files of different types
+        combined_content, total_tokens = clip_files.generate_combined_content_with_specific_files([file1_path, file2_path])
+
+        assert "test1.py" in combined_content
+        assert "test2.txt" in combined_content
+        assert total_tokens > 0
+
+
+def test_generate_combined_content_with_specific_files_invalid_path() -> None:
+    """Test generate_combined_content_with_specific_files with invalid file path."""
+    with pytest.raises(ValueError, match="Specified file .* does not exist"):
+        clip_files.generate_combined_content_with_specific_files(["nonexistent.py"])
+
+
+def test_main_with_specific_files() -> None:
+    """Test main function with --files argument."""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        file1_path = os.path.join(temp_dir, "test1.py")
+        file2_path = os.path.join(temp_dir, "test2.py")
+
+        with open(file1_path, "w", encoding="utf-8") as f1:
+            f1.write("print('test1')")
+        with open(file2_path, "w", encoding="utf-8") as f2:
+            f2.write("print('test2')")
+
+        with patch("sys.argv", ["clip_files.py", "--files", file1_path, file2_path]):
+            clip_files.main()
+
+        clipboard_content = pyperclip.paste()
+        assert "test1.py" in clipboard_content
+        assert "test2.py" in clipboard_content
+
+
+def test_main_with_initial_file() -> None:
+    """Test main function with --initial-file argument."""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        # Create test Python file
+        py_file = os.path.join(temp_dir, "test.py")
+        with open(py_file, "w", encoding="utf-8") as f:
+            f.write("print('test')")
+
+        # Create initial file
+        initial_file = os.path.join(temp_dir, "initial.txt")
+        with open(initial_file, "w", encoding="utf-8") as f:
+            f.write("Custom initial message")
+
+        with patch("sys.argv", ["clip_files.py", temp_dir, ".py", "--initial-file", initial_file]):
+            clip_files.main()
+
+        clipboard_content = pyperclip.paste()
+        assert "Custom initial message" in clipboard_content
+        assert "test.py" in clipboard_content
