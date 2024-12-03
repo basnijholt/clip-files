@@ -190,14 +190,35 @@ def generate_combined_content_with_specific_files(
     return combined_content, total_tokens
 
 
+_DOC = """
+Collect files with a specific extension or specific files, format them for clipboard, and count tokens.
+
+There are two main ways to use clip-files:
+
+1. Collecting all files with a specific extension in a folder:
+   `clip-files FOLDER EXTENSION`
+   Examples:
+   - `clip-files . .py`  # all Python files in current directory
+   - `clip-files src .txt`  # all text files in src directory
+   - `clip-files docs .md --initial-file instructions.txt`  # with custom instructions
+
+2. Collecting specific files (can be of different types):
+   `clip-files --files FILE [FILE ...]`
+   Examples:
+   - `clip-files --files src/*.py tests/*.py`  # using shell wildcards
+   - `clip-files --files src/main.py docs/README.md`  # different file types
+   - `clip-files --files src/*.py --initial-file instructions.txt`  # with custom instructions
+
+Note: When using wildcards (e.g., *.py), your shell will expand them before passing to clip-files.
+"""
+
+
 def main() -> None:
     """Main function to handle the collection, formatting, and clipboard operations.
 
     Parses command-line arguments, collects and formats files, and copies the result to the clipboard.
     """
-    parser = argparse.ArgumentParser(
-        description="Collect files with a specific extension or specific files, format them for clipboard, and count tokens.",
-    )
+    parser = argparse.ArgumentParser(description=_DOC, formatter_class=argparse.RawDescriptionHelpFormatter)
     # Make 'folder' and 'extension' optional positional arguments
     parser.add_argument("folder", type=str, nargs="?", help="The folder to search for files.")
     parser.add_argument(

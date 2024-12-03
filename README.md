@@ -60,7 +60,13 @@ usage: clip-files [-h] [--initial-file INITIAL_FILE]
                   [folder] [extension]
 
 Collect files with a specific extension or specific files, format them for
-clipboard, and count tokens.
+clipboard, and count tokens. Some examples are: 1. Collect all `.py` files in
+the `src` directory: `clip-files src .py` or with a glob `clip-files --files
+src/*.py`. 2. Collect `.txt` files in `documents` and count tokens: `clip-
+files documents .txt`. 3. Collect specific files (can be of different types):
+`clip-files --files src/main.py tests/test_app.py docs/README.md`. 4. Use an
+initial file with custom instructions and collect specific files: `clip-files
+--initial-file instructions.txt --files src/main.py src/utils.py`.
 
 positional arguments:
   folder                The folder to search for files.
@@ -87,30 +93,38 @@ options:
 > Pro-tip! Just use `uv` to run `clip-files` without installing it.
 > For example, `uv run clip-files --files *.py` will run `clip-files` in an temporary environment.
 
-* Collect all `.py` files in the `src` directory:
-```
-clip-files src .py
-```
+There are two main ways to use `clip-files`:
 
-* Collect `.txt` files in `documents` and count tokens:
-```
+1. Collecting all files with a specific extension in a folder:
+
+```bash
+# Collect all Python files in the current directory
+clip-files . .py
+
+# Collect all text files in the documents folder
 clip-files documents .txt
+
+# Collect all Python files, including custom initial instructions
+clip-files src .py --initial-file instructions.txt
 ```
 
-* Collect specific files (can be of different types):
-```
-clip-files --files src/main.py tests/test_app.py docs/README.md
+2. Collecting specific files (can be of different types):
+
+```bash
+# Collect specific files
+clip-files --files src/main.py tests/test_app.py
+
+# Using shell wildcards to select files
+clip-files --files src/*.py tests/*.py
+
+# Mix different file types with wildcards
+clip-files --files src/*.py docs/*.md config/*.json
+
+# With custom initial instructions
+clip-files --initial-file instructions.txt --files src/*.py
 ```
 
-* Use an initial file with custom instructions and collect specific files:
-```
-clip-files --initial-file instructions.txt --files src/main.py src/utils.py
-```
-
-* Mix different file types from different directories:
-```
-clip-files --files backend/api.py frontend/index.html config/settings.json
-```
+Note: When using wildcards (e.g., `*.py`), your shell will expand them before passing to `clip-files`.
 
 ## :hammer_and_wrench: Installation
 
