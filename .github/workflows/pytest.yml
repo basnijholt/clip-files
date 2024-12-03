@@ -8,7 +8,7 @@ jobs:
     strategy:
       matrix:
         os: [macos-latest]
-        python-version: ["3.9", "3.12"]
+        python-version: ["3.9", "3.13"]
 
     steps:
       - uses: actions/checkout@v4
@@ -23,7 +23,7 @@ jobs:
       - name: Run pytest
         run: pytest
       - name: Upload coverage reports to Codecov
-        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
+        if: matrix.os == 'macos-latest' && matrix.python-version == '3.13'
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
