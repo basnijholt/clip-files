@@ -20,8 +20,8 @@ Makes it simple to paste in your entire project into e.g., ChatGPT or Claude.ai,
 
 - [:star2: Features](#star2-features)
 - [:books: Usage](#books-usage)
-- [:hammer_and_wrench: Installation](#hammer_and_wrench-installation)
 - [:bulb: Examples](#bulb-examples)
+- [:hammer_and_wrench: Installation](#hammer_and_wrench-installation)
 - [:file_folder: Supported File Types](#file_folder-supported-file-types)
 - [:1234: Token Counting](#1234-token-counting)
 - [:heart: Support and Contributions](#heart-support-and-contributions)
@@ -81,6 +81,37 @@ options:
 
 `clip-files` will traverse the specified folder, gather files with the desired extension, format them with their paths, and copy the results to your clipboard along with the token count.
 
+## :bulb: Examples
+
+> [!TIP]
+> Pro-tip! Just use `uv` to run `clip-files` without installing it.
+> For example, `uv run clip-files --files *.py` will run `clip-files` in an temporary environment.
+
+* Collect all `.py` files in the `src` directory:
+```
+clip-files src .py
+```
+
+* Collect `.txt` files in `documents` and count tokens:
+```
+clip-files documents .txt
+```
+
+* Collect specific files (can be of different types):
+```
+clip-files --files src/main.py tests/test_app.py docs/README.md
+```
+
+* Use an initial file with custom instructions and collect specific files:
+```
+clip-files --initial-file instructions.txt --files src/main.py src/utils.py
+```
+
+* Mix different file types from different directories:
+```
+clip-files --files backend/api.py frontend/index.html config/settings.json
+```
+
 ## :hammer_and_wrench: Installation
 
 To install `clip-files`, use pip:
@@ -107,22 +138,6 @@ and run it using:
 ```bash
 python clip_files.py --help
 ```
-
-## :bulb: Examples
-
-* Collect all `.py` files in the `src` directory:
-
-```
-clip-files src .py
-```
-
-* Collect `.txt` files in `documents` and count tokens:
-
-```
-clip-files documents .txt
-```
-
-For more examples and detailed usage instructions, refer to the documentation.
 
 ## :file_folder: Supported File Types
 
