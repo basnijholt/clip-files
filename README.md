@@ -60,7 +60,7 @@ usage: clip-files [-h] [--initial-file INITIAL_FILE]
                   [folder] [extension]
 
 Collect files with a specific extension or specific files, format them for
-clipboard, and count tokens. * Collect all `.py` files in the `src` directory:
+clipboard, and count tokens * Collect all `.py` files in the `src` directory:
 ``` clip-files src .py ``` * Collect `.txt` files in `documents` and count
 tokens: ``` clip-files documents .txt ``` * Collect specific files (can be of
 different types): ``` clip-files --files src/main.py tests/test_app.py
