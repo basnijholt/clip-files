@@ -59,8 +59,25 @@ usage: clip-files [-h] [--initial-file INITIAL_FILE]
                   [--files FILES [FILES ...]]
                   [folder] [extension]
 
-Collect files with a specific extension or specific files, format them for
-clipboard, and count tokens.
+Collect files with a specific extension or specific files, format them for clipboard, and count tokens.
+
+There are two main ways to use clip-files:
+
+1. Collecting all files with a specific extension in a folder:
+   `clip-files FOLDER EXTENSION`
+   Examples:
+   - `clip-files . .py`  # all Python files in current directory
+   - `clip-files src .txt`  # all text files in src directory
+   - `clip-files docs .md --initial-file instructions.txt`  # with custom instructions
+
+2. Collecting specific files (can be of different types):
+   `clip-files --files FILE [FILE ...]`
+   Examples:
+   - `clip-files --files src/*.py tests/*.py`  # using shell wildcards
+   - `clip-files --files src/main.py docs/README.md`  # different file types
+   - `clip-files --files src/*.py --initial-file instructions.txt`  # with custom instructions
+
+Note: When using wildcards (e.g., *.py), your shell will expand them before passing to clip-files.
 
 positional arguments:
   folder                The folder to search for files.
@@ -87,30 +104,38 @@ options:
 > Pro-tip! Just use `uv` to run `clip-files` without installing it.
 > For example, `uv run clip-files --files *.py` will run `clip-files` in an temporary environment.
 
-* Collect all `.py` files in the `src` directory:
-```
-clip-files src .py
-```
+There are two main ways to use `clip-files`:
 
-* Collect `.txt` files in `documents` and count tokens:
-```
+1. Collecting all files with a specific extension in a folder:
+
+```bash
+# Collect all Python files in the current directory
+clip-files . .py
+
+# Collect all text files in the documents folder
 clip-files documents .txt
+
+# Collect all Python files, including custom initial instructions
+clip-files src .py --initial-file instructions.txt
 ```
 
-* Collect specific files (can be of different types):
-```
-clip-files --files src/main.py tests/test_app.py docs/README.md
+2. Collecting specific files (can be of different types):
+
+```bash
+# Collect specific files
+clip-files --files src/main.py tests/test_app.py
+
+# Using shell wildcards to select files
+clip-files --files src/*.py tests/*.py
+
+# Mix different file types with wildcards
+clip-files --files src/*.py docs/*.md config/*.json
+
+# With custom initial instructions
+clip-files --initial-file instructions.txt --files src/*.py
 ```
 
-* Use an initial file with custom instructions and collect specific files:
-```
-clip-files --initial-file instructions.txt --files src/main.py src/utils.py
-```
-
-* Mix different file types from different directories:
-```
-clip-files --files backend/api.py frontend/index.html config/settings.json
-```
+Note: When using wildcards (e.g., `*.py`), your shell will expand them before passing to `clip-files`.
 
 ## :hammer_and_wrench: Installation
 
