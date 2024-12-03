@@ -20,8 +20,8 @@ Makes it simple to paste in your entire project into e.g., ChatGPT or Claude.ai,
 
 - [:star2: Features](#star2-features)
 - [:books: Usage](#books-usage)
-- [:hammer_and_wrench: Installation](#hammer_and_wrench-installation)
 - [:bulb: Examples](#bulb-examples)
+- [:hammer_and_wrench: Installation](#hammer_and_wrench-installation)
 - [:file_folder: Supported File Types](#file_folder-supported-file-types)
 - [:1234: Token Counting](#1234-token-counting)
 - [:heart: Support and Contributions](#heart-support-and-contributions)
