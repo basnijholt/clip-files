@@ -148,6 +148,9 @@ def generate_combined_content_with_specific_files(
 
     # Process each specified file
     for file_path in file_paths:
+        if os.path.isdir(file_path):
+            msg = f"Specified path '{file_path}' is a directory. It will be skipped."
+            continue
         if not os.path.isfile(file_path):
             msg = f"Specified file '{file_path}' does not exist."
             raise ValueError(msg)
