@@ -10,7 +10,16 @@ import pyperclip
 import tiktoken
 
 FINAL_PROMPT = " This was the last file for this prompt. My question is:"
-DEFAULT_INITIAL_MESSAGE = "Below are files that I need assistance with. Each file is surrounded with xml like tags with its path for reference.\n\n"
+DEFAULT_INITIAL_MESSAGE = """\
+Below are files that I need assistance with. Each file is surrounded with xml-like tags with its path for reference.
+
+For example:
+<file path="name">
+CONTENT
+</file path="name">)
+
+
+"""
 
 
 def get_token_count(text: str, model: str = "gpt-4") -> int:
