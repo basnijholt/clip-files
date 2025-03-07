@@ -9,6 +9,18 @@ import os
 import pyperclip
 import tiktoken
 
+FINAL_PROMPT = " This was the last file for this prompt. My question is:"
+DEFAULT_INITIAL_MESSAGE = """\
+Below are files that I need assistance with. Each file is surrounded with xml-like tags with its path for reference.
+
+For example:
+<file path="name">
+CONTENT
+</file path="name">)
+
+
+"""
+
 
 def get_token_count(text: str, model: str = "gpt-4") -> int:
     """Calculate the number of tokens in the provided text as per the specified model.
@@ -91,9 +103,7 @@ def generate_combined_content(
         with open(initial_file_path, encoding="utf-8") as f:
             initial_message = f.read()
     else:
-        initial_message = (
-            "Hello! Below are the code files from my project that I need assistance with. Each file is prefixed with its path for reference.\n\n"
-        )
+        initial_message = DEFAULT_INITIAL_MESSAGE
 
     file_contents, files_tokens, file_paths = get_files_with_extension(
         folder_path,
@@ -113,13 +123,11 @@ def generate_combined_content(
     )
     combined_initial_message = f"{initial_message}\n{file_list_message}\n\n"
 
-    final_prompt = " This was the last file in my project. My question is:"
-
-    combined_content = combined_initial_message + "\n\n".join(file_contents) + "\n\n" + final_prompt
+    combined_content = combined_initial_message + "\n\n".join(file_contents) + "\n\n" + FINAL_PROMPT
 
     # Calculate tokens for all parts
     initial_tokens = get_token_count(combined_initial_message)
-    final_tokens = get_token_count(final_prompt)
+    final_tokens = get_token_count(FINAL_PROMPT)
 
     # Total tokens include initial, file contents, and final prompt
     total_tokens = initial_tokens + files_tokens + final_tokens
@@ -157,7 +165,7 @@ def generate_combined_content_with_specific_files(
 
         with open(file_path, encoding="utf-8") as f:
             content = f.read()
-            formatted_content = f"# File: {file_path}\n{content}"
+            formatted_content = f'<file path="{file_path}">\n{content}\n</file path="{file_path}">'
             file_contents.append(formatted_content)
             total_tokens += get_token_count(formatted_content)
 
@@ -167,9 +175,7 @@ def generate_combined_content_with_specific_files(
         with open(initial_file_path, encoding="utf-8") as f:
             initial_message = f.read()
     else:
-        initial_message = (
-            "Hello! Below are the code files from my project that I need assistance with. Each file is prefixed with its path for reference.\n\n"
-        )
+        initial_message = DEFAULT_INITIAL_MESSAGE
 
     # Create file list message
     file_list_message = "## Files Included\n" + "\n".join(
@@ -177,15 +183,12 @@ def generate_combined_content_with_specific_files(
     )
     combined_initial_message = f"{initial_message}\n{file_list_message}\n\n"
 
-    # Final prompt
-    final_prompt = " This was the last file in my project. My question is:"
-
     # Combine all parts
-    combined_content = combined_initial_message + "\n\n".join(file_contents) + "\n\n" + final_prompt
+    combined_content = combined_initial_message + "\n\n".join(file_contents) + "\n\n" + FINAL_PROMPT
 
     # Calculate tokens for all parts
     initial_tokens = get_token_count(combined_initial_message)
-    final_tokens = get_token_count(final_prompt)
+    final_tokens = get_token_count(FINAL_PROMPT)
 
     # Total tokens
     total_tokens = initial_tokens + total_tokens + final_tokens

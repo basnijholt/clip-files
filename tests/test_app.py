@@ -89,20 +89,20 @@ def test_generate_combined_content_without_initial_file(tmp_path: Path) -> None:
     combined_content, total_tokens = clip_files.generate_combined_content(folder_path=str(tmp_path), file_extension=".py")
 
     # Verify the combined content includes the default initial message
-    assert "Hello! Below are the code files from my project" in combined_content, "Default initial message should be included"
-    assert "# File:" in combined_content, "File content should include file path and content"
-    assert "test.py" in combined_content, "File path should be included in the combined content"
-    assert "print('Hello, world!')" in combined_content, "File content should be included in the combined content"
-    assert "My question is:" in combined_content, "Question prompt should be at the end"
+    assert clip_files.DEFAULT_INITIAL_MESSAGE in combined_content
+    assert "# File:" in combined_content
+    assert "test.py" in combined_content
+    assert "print('Hello, world!')" in combined_content
+    assert "My question is:" in combined_content
 
     # Copy the combined content to clipboard for further verification
     pyperclip.copy(combined_content)
     clipboard_content = pyperclip.paste()
 
-    assert clipboard_content == combined_content, "Clipboard content should match the combined content generated"
+    assert clipboard_content == combined_content
 
     # Ensure total tokens are counted correctly
-    assert total_tokens > 0, "Total tokens should be a positive integer"
+    assert total_tokens > 0
 
 
 def test_main_without_initial_file() -> None:
@@ -118,9 +118,9 @@ def test_main_without_initial_file() -> None:
             clip_files.main()
 
         clipboard_content = pyperclip.paste()
-        assert "Hello! Below are the code files from my project" in clipboard_content, "Default initial message should be included"
-        assert "# File:" in clipboard_content, "File content should be included"
-        assert "My question is:" in clipboard_content, "Question prompt should be at the end"
+        assert clip_files.DEFAULT_INITIAL_MESSAGE in clipboard_content
+        assert "# File:" in clipboard_content
+        assert "My question is:" in clipboard_content
 
 
 def test_generate_combined_content_with_selected_files(tmp_path: Path) -> None:
@@ -144,9 +144,9 @@ def test_generate_combined_content_with_selected_files(tmp_path: Path) -> None:
     )
 
     # Verify that only the selected files are included in the combined content
-    assert "test1.py" in combined_content, "Selected file1 should be included"
-    assert "test3.py" in combined_content, "Selected file3 should be included"
-    assert "test2.py" not in combined_content, "Non-selected file2 should not be included"
+    assert "test1.py" in combined_content
+    assert "test3.py" in combined_content
+    assert "test2.py" not in combined_content
 
     # Ensure total tokens reflect only the included files
     token_count_test1 = clip_files.get_token_count(f"# File: {file1_path}\nprint('Hello from test1')\n")
@@ -155,18 +155,17 @@ def test_generate_combined_content_with_selected_files(tmp_path: Path) -> None:
         token_count_test1
         + token_count_test3
         + clip_files.get_token_count(
-            "Hello! Below are the code files from my project that I need assistance with. Each file is prefixed with its path for reference.\n\n"
-            "## Files Included\n1. " + str(file1_path) + "\n2. " + str(file3_path) + "\n\n"
+            clip_files.DEFAULT_INITIAL_MESSAGE + "## Files Included\n1. " + str(file1_path) + "\n2. " + str(file3_path) + "\n\n"
             "\n\nThis was the last file in my project. My question is:",
         )
     )
-    assert total_tokens == expected_total_tokens, "Total tokens should match the sum of selected files and initial messages"
+    assert total_tokens == expected_total_tokens
 
     # Copy the combined content to clipboard for further verification
     pyperclip.copy(combined_content)
     clipboard_content = pyperclip.paste()
 
-    assert clipboard_content == combined_content, "Clipboard content should match the combined content generated"
+    assert clipboard_content == combined_content
 
 
 def test_invalid_directory() -> None:
