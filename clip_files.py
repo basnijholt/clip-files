@@ -40,7 +40,9 @@ def get_token_count(text: str, model: str = "gpt-4") -> int:
     return len(tokens)
 
 
-def get_files_with_extension(folder_path: str, file_extension: str, selected_files: list[str] | None = None) -> tuple[list[str], int, list[str]]:
+def get_files_with_extension(
+    folder_path: str, file_extension: str, selected_files: list[str] | None = None
+) -> tuple[list[str], int, list[str]]:
     """Collect files with the specified extension from the folder and format their content.
 
     Args:
@@ -123,7 +125,9 @@ def generate_combined_content(
     )
     combined_initial_message = f"{initial_message}\n{file_list_message}\n\n"
 
-    combined_content = combined_initial_message + "\n\n".join(file_contents) + "\n\n" + FINAL_PROMPT
+    combined_content = (
+        combined_initial_message + "\n\n".join(file_contents) + "\n\n" + FINAL_PROMPT
+    )
 
     # Calculate tokens for all parts
     initial_tokens = get_token_count(combined_initial_message)
@@ -165,7 +169,9 @@ def generate_combined_content_with_specific_files(
 
         with open(file_path, encoding="utf-8") as f:
             content = f.read()
-            formatted_content = f'<file path="{file_path}">\n{content}\n</file path="{file_path}">'
+            formatted_content = (
+                f'<file path="{file_path}">\n{content}\n</file path="{file_path}">'
+            )
             file_contents.append(formatted_content)
             total_tokens += get_token_count(formatted_content)
 
@@ -184,7 +190,9 @@ def generate_combined_content_with_specific_files(
     combined_initial_message = f"{initial_message}\n{file_list_message}\n\n"
 
     # Combine all parts
-    combined_content = combined_initial_message + "\n\n".join(file_contents) + "\n\n" + FINAL_PROMPT
+    combined_content = (
+        combined_initial_message + "\n\n".join(file_contents) + "\n\n" + FINAL_PROMPT
+    )
 
     # Calculate tokens for all parts
     initial_tokens = get_token_count(combined_initial_message)
@@ -213,7 +221,11 @@ There are two main ways to use clip-files:
    Examples:
    - `clip-files --files src/*.py tests/*.py`  # using shell wildcards
    - `clip-files --files src/main.py docs/README.md`  # different file types
-   - `clip-files --files src/*.py --initial-file instructions.txt`  # with custom instructions
+   - `clip-files -f src/*.py -i instructions.txt`  # with custom instructions
+
+Options:
+  -f, --files        Specify individual files to include
+  -i, --initial-file A file containing initial instructions
 
 Note: When using wildcards (e.g., *.py), your shell will expand them before passing to clip-files.
 """
@@ -224,9 +236,13 @@ def main() -> None:
 
     Parses command-line arguments, collects and formats files, and copies the result to the clipboard.
     """
-    parser = argparse.ArgumentParser(description=_DOC, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description=_DOC, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     # Make 'folder' and 'extension' optional positional arguments
-    parser.add_argument("folder", type=str, nargs="?", help="The folder to search for files.")
+    parser.add_argument(
+        "folder", type=str, nargs="?", help="The folder to search for files."
+    )
     parser.add_argument(
         "extension",
         type=str,
@@ -234,12 +250,14 @@ def main() -> None:
         help="The file extension to look for (e.g., .py, .txt).",
     )
     parser.add_argument(
+        "-i",
         "--initial-file",
         type=str,
         default="",
         help="A file containing initial instructions to prepend to the clipboard content. Default is an empty string.",
     )
     parser.add_argument(
+        "-f",
         "--files",
         nargs="+",
         default=None,
@@ -251,15 +269,19 @@ def main() -> None:
     # Custom validation to enforce mutual exclusivity
     if args.files is None:
         if not args.folder or not args.extension:
-            parser.error("the following arguments are required: folder and extension when --files is not used")
+            parser.error(
+                "the following arguments are required: folder and extension when --files is not used"
+            )
     elif args.folder or args.extension:
         parser.error("folder and extension should not be provided when using --files")
 
     try:
         if args.files:
-            combined_content, total_tokens = generate_combined_content_with_specific_files(
-                file_paths=args.files,
-                initial_file_path=args.initial_file,
+            combined_content, total_tokens = (
+                generate_combined_content_with_specific_files(
+                    file_paths=args.files,
+                    initial_file_path=args.initial_file,
+                )
             )
         else:
             combined_content, total_tokens = generate_combined_content(

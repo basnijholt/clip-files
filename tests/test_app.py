@@ -36,13 +36,17 @@ def test_get_files_with_extension() -> None:
         with open(file2_path, "w", encoding="utf-8") as f2:
             f2.write("print('Another file')\n")
 
-        file_contents, total_tokens, file_paths = clip_files.get_files_with_extension(temp_dir, ".py")
+        file_contents, total_tokens, file_paths = clip_files.get_files_with_extension(
+            temp_dir, ".py"
+        )
 
         assert len(file_contents) == 2, "Should find two .py files"  # noqa: PLR2004
         assert total_tokens > 0, "Total tokens should be greater than 0"
         assert file1_path in file_paths, "File path should be in the list"
         assert file2_path in file_paths, "File path should be in the list"
-        assert file_contents[0].startswith("# File:"), "File content should start with # File:"
+        assert file_contents[0].startswith(
+            "# File:"
+        ), "File content should start with # File:"
 
 
 def test_generate_combined_content_with_initial_file(tmp_path: Path) -> None:
@@ -65,15 +69,21 @@ def test_generate_combined_content_with_initial_file(tmp_path: Path) -> None:
     # Verify the combined content includes the initial instructions
     assert "These are initial instructions." in combined_content, combined_content
     assert "# File:" in combined_content, "File content should be included"
-    assert "test.py" in combined_content, "File path should be included in the combined content"
-    assert "print('Hello, world!')" in combined_content, "File content should be included in the combined content"
+    assert (
+        "test.py" in combined_content
+    ), "File path should be included in the combined content"
+    assert (
+        "print('Hello, world!')" in combined_content
+    ), "File content should be included in the combined content"
     assert "My question is:" in combined_content, "Question prompt should be at the end"
 
     # Copy the combined content to clipboard for further verification
     pyperclip.copy(combined_content)
     clipboard_content = pyperclip.paste()
 
-    assert clipboard_content == combined_content, "Clipboard content should match the combined content generated"
+    assert (
+        clipboard_content == combined_content
+    ), "Clipboard content should match the combined content generated"
 
     # Ensure total tokens are counted correctly
     assert total_tokens > 0, "Total tokens should be a positive integer"
@@ -86,7 +96,9 @@ def test_generate_combined_content_without_initial_file(tmp_path: Path) -> None:
     file_path.write_text("print('Hello, world!')\n", encoding="utf-8")
 
     # Call the generate_combined_content function
-    combined_content, total_tokens = clip_files.generate_combined_content(folder_path=str(tmp_path), file_extension=".py")
+    combined_content, total_tokens = clip_files.generate_combined_content(
+        folder_path=str(tmp_path), file_extension=".py"
+    )
 
     # Verify the combined content includes the default initial message
     assert clip_files.DEFAULT_INITIAL_MESSAGE in combined_content
@@ -149,13 +161,22 @@ def test_generate_combined_content_with_selected_files(tmp_path: Path) -> None:
     assert "test2.py" not in combined_content
 
     # Ensure total tokens reflect only the included files
-    token_count_test1 = clip_files.get_token_count(f"# File: {file1_path}\nprint('Hello from test1')\n")
-    token_count_test3 = clip_files.get_token_count(f"# File: {file3_path}\nprint('Hello from test3')\n")
+    token_count_test1 = clip_files.get_token_count(
+        f"# File: {file1_path}\nprint('Hello from test1')\n"
+    )
+    token_count_test3 = clip_files.get_token_count(
+        f"# File: {file3_path}\nprint('Hello from test3')\n"
+    )
     expected_total_tokens = (
         token_count_test1
         + token_count_test3
         + clip_files.get_token_count(
-            clip_files.DEFAULT_INITIAL_MESSAGE + "## Files Included\n1. " + str(file1_path) + "\n2. " + str(file3_path) + "\n\n"
+            clip_files.DEFAULT_INITIAL_MESSAGE
+            + "## Files Included\n1. "
+            + str(file1_path)
+            + "\n2. "
+            + str(file3_path)
+            + "\n\n"
             "\n\nThis was the last file in my project. My question is:",
         )
     )
@@ -176,7 +197,9 @@ def test_invalid_directory() -> None:
 
 def test_no_matching_files() -> None:
     """Test generate_combined_content when no matching files are found."""
-    with tempfile.TemporaryDirectory() as temp_dir, pytest.raises(ValueError, match="No files with extension .xyz found"):
+    with tempfile.TemporaryDirectory() as temp_dir, pytest.raises(
+        ValueError, match="No files with extension .xyz found"
+    ):
         clip_files.generate_combined_content(temp_dir, ".xyz")
 
 
@@ -187,8 +210,12 @@ def test_no_matching_selected_files() -> None:
         with open(file_path, "w", encoding="utf-8") as f:
             f.write("print('test')")
 
-        with pytest.raises(ValueError, match="No specified files with extension .py found"):
-            clip_files.generate_combined_content(temp_dir, ".py", selected_files=["nonexistent.py"])
+        with pytest.raises(
+            ValueError, match="No specified files with extension .py found"
+        ):
+            clip_files.generate_combined_content(
+                temp_dir, ".py", selected_files=["nonexistent.py"]
+            )
 
 
 def test_generate_combined_content_with_specific_files() -> None:
@@ -204,7 +231,11 @@ def test_generate_combined_content_with_specific_files() -> None:
             f2.write("test2 content")
 
         # Test with multiple files of different types
-        combined_content, total_tokens = clip_files.generate_combined_content_with_specific_files([file1_path, file2_path])
+        combined_content, total_tokens = (
+            clip_files.generate_combined_content_with_specific_files(
+                [file1_path, file2_path]
+            )
+        )
 
         assert "test1.py" in combined_content
         assert "test2.txt" in combined_content
@@ -249,9 +280,78 @@ def test_main_with_initial_file() -> None:
         with open(initial_file, "w", encoding="utf-8") as f:
             f.write("Custom initial message")
 
-        with patch("sys.argv", ["clip_files.py", temp_dir, ".py", "--initial-file", initial_file]):
+        with patch(
+            "sys.argv",
+            ["clip_files.py", temp_dir, ".py", "--initial-file", initial_file],
+        ):
             clip_files.main()
 
         clipboard_content = pyperclip.paste()
         assert "Custom initial message" in clipboard_content
         assert "test.py" in clipboard_content
+
+
+def test_main_with_short_flag_files() -> None:
+    """Test main function with -f short flag."""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        file1_path = os.path.join(temp_dir, "test1.py")
+        file2_path = os.path.join(temp_dir, "test2.py")
+        with open(file1_path, "w", encoding="utf-8") as f1:
+            f1.write("print('test1')")
+        with open(file2_path, "w", encoding="utf-8") as f2:
+            f2.write("print('test2')")
+
+        with patch("sys.argv", ["clip_files.py", "-f", file1_path, file2_path]):
+            clip_files.main()
+
+        clipboard_content = pyperclip.paste()
+        assert "test1.py" in clipboard_content
+        assert "test2.py" in clipboard_content
+
+
+def test_main_with_short_flag_initial_file() -> None:
+    """Test main function with -i short flag."""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        # Create test Python file
+        py_file = os.path.join(temp_dir, "test.py")
+        with open(py_file, "w", encoding="utf-8") as f:
+            f.write("print('test')")
+
+        # Create initial file
+        initial_file = os.path.join(temp_dir, "initial.txt")
+        with open(initial_file, "w", encoding="utf-8") as f:
+            f.write("Custom initial message")
+
+        with patch("sys.argv", ["clip_files.py", temp_dir, ".py", "-i", initial_file]):
+            clip_files.main()
+
+        clipboard_content = pyperclip.paste()
+        assert "Custom initial message" in clipboard_content
+        assert "test.py" in clipboard_content
+
+
+def test_main_with_combined_short_flags() -> None:
+    """Test main function with both -f and -i short flags."""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        # Create test files
+        file1_path = os.path.join(temp_dir, "test1.py")
+        file2_path = os.path.join(temp_dir, "test2.py")
+        with open(file1_path, "w", encoding="utf-8") as f1:
+            f1.write("print('test1')")
+        with open(file2_path, "w", encoding="utf-8") as f2:
+            f2.write("print('test2')")
+
+        # Create initial file
+        initial_file = os.path.join(temp_dir, "initial.txt")
+        with open(initial_file, "w", encoding="utf-8") as f:
+            f.write("Custom initial message for combined test")
+
+        with patch("sys.argv", ["clip_files.py", "-f", file1_path, "-i", initial_file]):
+            clip_files.main()
+
+        clipboard_content = pyperclip.paste()
+        assert "Custom initial message for combined test" in clipboard_content
+        assert "test1.py" in clipboard_content
+        assert (
+            "test2.py" not in clipboard_content
+        )  # Should only include the specified file
