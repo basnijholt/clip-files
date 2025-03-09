@@ -355,3 +355,38 @@ def test_main_with_combined_short_flags() -> None:
         assert (
             "test2.py" not in clipboard_content
         )  # Should only include the specified file
+
+
+def test_generate_combined_content_with_multiple_extensions(tmp_path: Path) -> None:
+    """Test the generate_combined_content function with multiple file extensions."""
+    # Create test files with different extensions
+    file1_path = tmp_path / "test1.py"
+    file2_path = tmp_path / "test2.md"
+    file3_path = tmp_path / "test3.txt"
+    file4_path = tmp_path / "test4.js"  # This one shouldn't be included
+
+    file1_path.write_text("print('Hello from Python')\n", encoding="utf-8")
+    file2_path.write_text("# Hello from Markdown\n", encoding="utf-8")
+    file3_path.write_text("Hello from text file\n", encoding="utf-8")
+    file4_path.write_text("console.log('Not included');\n", encoding="utf-8")
+
+    # Call with multiple extensions
+    combined_content, total_tokens = clip_files.generate_combined_content(
+        folder_path=str(tmp_path),
+        file_extensions=[".py", ".md", ".txt"],
+    )
+
+    # Verify that only the expected files are included
+    assert "test1.py" in combined_content
+    assert "test2.md" in combined_content
+    assert "test3.txt" in combined_content
+    assert "test4.js" not in combined_content
+
+    # Verify content is included
+    assert "Hello from Python" in combined_content
+    assert "Hello from Markdown" in combined_content
+    assert "Hello from text file" in combined_content
+    assert "Not included" not in combined_content
+
+    # Ensure token count is positive
+    assert total_tokens > 0

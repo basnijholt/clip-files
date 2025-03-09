@@ -41,14 +41,14 @@ def get_token_count(text: str, model: str = "gpt-4") -> int:
 
 
 def get_files_with_extension(
-    folder_path: str, file_extension: str, selected_files: list[str] | None = None
+    folder_path: str, file_extensions: str, selected_files: list[str] | None = None
 ) -> tuple[list[str], int, list[str]]:
     """Collect files with the specified extension from the folder and format their content.
 
     Args:
     ----
         folder_path: The folder to search for files.
-        file_extension: The file extension to look for.
+        file_extensions: The file extensions to look for.
         selected_files: Optional list of specific file names to include.
 
     Returns:
@@ -62,23 +62,23 @@ def get_files_with_extension(
 
     for root, _, files in os.walk(folder_path):
         for file in files:
-            if file.endswith(file_extension):
+            if any(file.endswith(ext) for ext in file_extensions):
                 if selected_files and file not in selected_files:
                     continue  # Skip files not in the selected list
                 file_path = os.path.join(root, file)
                 file_paths.append(file_path)
                 with open(file_path, encoding="utf-8") as f:
                     content = f.read()
-                    formatted_content = f"# File: {file_path}\n{content}"
-                    file_contents.append(formatted_content)
-                    total_tokens += get_token_count(formatted_content)
+                formatted_content = f"# File: {file_path}\n{content}"
+                file_contents.append(formatted_content)
+                total_tokens += get_token_count(formatted_content)
 
     return file_contents, total_tokens, file_paths
 
 
 def generate_combined_content(
     folder_path: str,
-    file_extension: str,
+    file_extensions: list[str],
     initial_file_path: str = "",
     selected_files: list[str] | None = None,
 ) -> tuple[str, int]:
@@ -87,14 +87,13 @@ def generate_combined_content(
     Args:
     ----
         folder_path: The folder to search for files.
-        file_extension: The file extension to look for.
+        file_extensions: The file extensions to look for.
         initial_file_path: Optional path to an initial file with instructions.
         selected_files: Optional list of specific file names to include.
 
     Returns:
     -------
         Combined content as a single string and the total number of tokens.
-
     """
     if not os.path.isdir(folder_path):
         msg = f"{folder_path} is not a valid directory."
@@ -109,15 +108,16 @@ def generate_combined_content(
 
     file_contents, files_tokens, file_paths = get_files_with_extension(
         folder_path,
-        file_extension,
+        file_extensions,
         selected_files,
     )
 
     if not file_contents:
+        extensions_str = ", ".join(file_extensions)
         if selected_files:
-            msg = f"No specified files with extension {file_extension} found in {folder_path}."
+            msg = f"No specified files with extensions {extensions_str} found in {folder_path}."
         else:
-            msg = f"No files with extension {file_extension} found in {folder_path}."
+            msg = f"No files with extensions {extensions_str} found in {folder_path}."
         raise ValueError(msg)
 
     file_list_message = "## Files Included\n" + "\n".join(
@@ -162,6 +162,7 @@ def generate_combined_content_with_specific_files(
     for file_path in file_paths:
         if os.path.isdir(file_path):
             msg = f"Specified path '{file_path}' is a directory. It will be skipped."
+            print(msg)
             continue
         if not os.path.isfile(file_path):
             msg = f"Specified file '{file_path}' does not exist."
@@ -205,17 +206,15 @@ def generate_combined_content_with_specific_files(
 
 
 _DOC = """
-Collect files with a specific extension or specific files, format them for clipboard, and count tokens.
-
+Collect files with specific extensions or specific files, format them for clipboard, and count tokens.
 There are two main ways to use clip-files:
-
-1. Collecting all files with a specific extension in a folder:
-   `clip-files FOLDER EXTENSION`
+1. Collecting all files with specific extensions in a folder:
+   `clip-files FOLDER EXTENSION [EXTENSIONS ...]`
    Examples:
    - `clip-files . .py`  # all Python files in current directory
+   - `clip-files . .py .md .txt`  # all Python, Markdown, and text files in current directory
    - `clip-files src .txt`  # all text files in src directory
    - `clip-files docs .md --initial-file instructions.txt`  # with custom instructions
-
 2. Collecting specific files (can be of different types):
    `clip-files --files FILE [FILE ...]`
    Examples:
@@ -246,8 +245,8 @@ def main() -> None:
     parser.add_argument(
         "extension",
         type=str,
-        nargs="?",
-        help="The file extension to look for (e.g., .py, .txt).",
+        nargs="+",
+        help="The file extensions to look for (e.g., .py, .txt).",
     )
     parser.add_argument(
         "-i",
@@ -262,7 +261,7 @@ def main() -> None:
         nargs="+",
         default=None,
         help="Specific file paths to include (e.g., --files path/to/file1.py path/to/file2.md)."
-        " If not provided, all files with the specified extension are included.",
+        " If not provided, all files with the specified extensions are included.",
     )
     args = parser.parse_args()
 
@@ -286,7 +285,7 @@ def main() -> None:
         else:
             combined_content, total_tokens = generate_combined_content(
                 folder_path=args.folder,
-                file_extension=args.extension,
+                file_extensions=args.extension,
                 initial_file_path=args.initial_file,
             )
         pyperclip.copy(combined_content)
