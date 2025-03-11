@@ -65,8 +65,6 @@ def get_files_with_extension(
     file_paths = []
 
     for root, dirs, files in os.walk(folder_path):
-        print(f"root: {root}")
-        print(f"dirs: {dirs}")
         # Handle maxdepth
         if maxdepth is not None:
             # Calculate current depth
