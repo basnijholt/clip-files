@@ -46,7 +46,7 @@ exclude_lines = [
 
 [tool.ruff]
 line-length = 150
-target-version = "py37"
+target-version = "py38"
 
 [tool.ruff.lint]
 select = ["ALL"]
@@ -64,6 +64,7 @@ ignore = [
     "DTZ005",  # The use of `datetime.datetime.now()` without `tz` argument is not allowed
     "PLR0913", # Too many arguments to function call
     "S602",    # `subprocess` call with `shell=True` identified, security issue
+    "PLR2004", # Magic value used in comparison, consider replacing `2` with a constant variable
 ]
 
 [tool.ruff.lint.per-file-ignores]
@@ -74,7 +75,7 @@ ignore = [
 max-complexity = 18
 
 [tool.mypy]
-python_version = "3.7"
+python_version = "3.8"
 
 [tool.versioningit]
 

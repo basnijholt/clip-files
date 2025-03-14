@@ -37,15 +37,16 @@ def test_get_files_with_extension() -> None:
             f2.write("print('Another file')\n")
 
         file_contents, total_tokens, file_paths = clip_files.get_files_with_extension(
-            temp_dir, ".py"
+            temp_dir,
+            file_extensions=[".py"],
         )
 
-        assert len(file_contents) == 2, "Should find two .py files"  # noqa: PLR2004
+        assert len(file_contents) == 2, "Should find two .py files"
         assert total_tokens > 0, "Total tokens should be greater than 0"
         assert file1_path in file_paths, "File path should be in the list"
         assert file2_path in file_paths, "File path should be in the list"
         assert file_contents[0].startswith(
-            "# File:"
+            "# File:",
         ), "File content should start with # File:"
 
 
@@ -69,21 +70,15 @@ def test_generate_combined_content_with_initial_file(tmp_path: Path) -> None:
     # Verify the combined content includes the initial instructions
     assert "These are initial instructions." in combined_content, combined_content
     assert "# File:" in combined_content, "File content should be included"
-    assert (
-        "test.py" in combined_content
-    ), "File path should be included in the combined content"
-    assert (
-        "print('Hello, world!')" in combined_content
-    ), "File content should be included in the combined content"
+    assert "test.py" in combined_content, "File path should be included in the combined content"
+    assert "print('Hello, world!')" in combined_content, "File content should be included in the combined content"
     assert "My question is:" in combined_content, "Question prompt should be at the end"
 
     # Copy the combined content to clipboard for further verification
     pyperclip.copy(combined_content)
     clipboard_content = pyperclip.paste()
 
-    assert (
-        clipboard_content == combined_content
-    ), "Clipboard content should match the combined content generated"
+    assert clipboard_content == combined_content, "Clipboard content should match the combined content generated"
 
     # Ensure total tokens are counted correctly
     assert total_tokens > 0, "Total tokens should be a positive integer"
@@ -163,21 +158,16 @@ def test_generate_combined_content_with_selected_files(tmp_path: Path) -> None:
 
     # Ensure total tokens reflect only the included files
     token_count_test1 = clip_files.get_token_count(
-        f"# File: {file1_path}\nprint('Hello from test1')\n"
+        f"# File: {file1_path}\nprint('Hello from test1')\n",
     )
     token_count_test3 = clip_files.get_token_count(
-        f"# File: {file3_path}\nprint('Hello from test3')\n"
+        f"# File: {file3_path}\nprint('Hello from test3')\n",
     )
     expected_total_tokens = (
         token_count_test1
         + token_count_test3
         + clip_files.get_token_count(
-            clip_files.DEFAULT_INITIAL_MESSAGE
-            + "## Files Included\n1. "
-            + str(file1_path)
-            + "\n2. "
-            + str(file3_path)
-            + "\n\n"
+            clip_files.DEFAULT_INITIAL_MESSAGE + "## Files Included\n1. " + str(file1_path) + "\n2. " + str(file3_path) + "\n\n"
             "\n\nThis was the last file in my project. My question is:",
         )
     )
@@ -193,15 +183,19 @@ def test_generate_combined_content_with_selected_files(tmp_path: Path) -> None:
 def test_invalid_directory() -> None:
     """Test generate_combined_content with an invalid directory."""
     with pytest.raises(ValueError, match="is not a valid directory"):
-        clip_files.generate_combined_content("/nonexistent/path", ".py")
+        clip_files.generate_combined_content("/nonexistent/path", file_extensions=[".py"])
 
 
 def test_no_matching_files() -> None:
     """Test generate_combined_content when no matching files are found."""
-    with tempfile.TemporaryDirectory() as temp_dir, pytest.raises(
-        ValueError, match=f"No files with extensions .xyz found in {temp_dir}."
+    with (
+        tempfile.TemporaryDirectory() as temp_dir,
+        pytest.raises(
+            ValueError,
+            match=f"No files with extensions .xyz found in {temp_dir}.",
+        ),
     ):
-        clip_files.generate_combined_content(temp_dir, [".xyz"])
+        clip_files.generate_combined_content(temp_dir, file_extensions=[".xyz"])
 
 
 def test_no_matching_selected_files() -> None:
@@ -216,7 +210,9 @@ def test_no_matching_selected_files() -> None:
             match=f"No specified files with extensions .py found in {temp_dir}.",
         ):
             clip_files.generate_combined_content(
-                temp_dir, [".py"], selected_files=["nonexistent.py"]
+                temp_dir,
+                [".py"],
+                selected_files=["nonexistent.py"],
             )
 
 
@@ -233,10 +229,8 @@ def test_generate_combined_content_with_specific_files() -> None:
             f2.write("test2 content")
 
         # Test with multiple files of different types
-        combined_content, total_tokens = (
-            clip_files.generate_combined_content_with_specific_files(
-                [file1_path, file2_path]
-            )
+        combined_content, total_tokens = clip_files.generate_combined_content_with_specific_files(
+            [file1_path, file2_path],
         )
 
         assert "test1.py" in combined_content
@@ -354,9 +348,7 @@ def test_main_with_combined_short_flags() -> None:
         clipboard_content = pyperclip.paste()
         assert "Custom initial message for combined test" in clipboard_content
         assert "test1.py" in clipboard_content
-        assert (
-            "test2.py" not in clipboard_content
-        )  # Should only include the specified file
+        assert "test2.py" not in clipboard_content  # Should only include the specified file
 
 
 def test_generate_combined_content_with_multiple_extensions(tmp_path: Path) -> None:
@@ -394,7 +386,7 @@ def test_generate_combined_content_with_multiple_extensions(tmp_path: Path) -> N
     assert total_tokens > 0
 
 
-def test_is_hidden():
+def test_is_hidden() -> None:
     """Test is_hidden function."""
     assert clip_files.is_hidden(".hidden_file") is True
     assert clip_files.is_hidden("normal_file") is False
@@ -402,7 +394,7 @@ def test_is_hidden():
     assert clip_files.is_hidden("/path/to/normal_dir") is False
 
 
-def test_is_binary():
+def test_is_binary() -> None:
     """Test is_binary function."""
     with tempfile.NamedTemporaryFile(delete=False) as text_file:
         text_file.write(b"This is a text file")
@@ -422,7 +414,7 @@ def test_is_binary():
         os.unlink(binary_file_path)
 
 
-def test_maxdepth_parameter(tmp_path: Path):
+def test_maxdepth_parameter(tmp_path: Path) -> None:
     """Test maxdepth parameter in directory traversal."""
     # Create a directory structure with multiple levels
     level1 = tmp_path / "level1"
@@ -440,7 +432,9 @@ def test_maxdepth_parameter(tmp_path: Path):
 
     # Test maxdepth=0 (only root directory)
     contents0, _, paths0 = clip_files.get_files_with_extension(
-        folder_path=str(tmp_path), file_extensions=[".py"], maxdepth=0
+        folder_path=str(tmp_path),
+        file_extensions=[".py"],
+        maxdepth=0,
     )
     assert len(contents0) == 1
     assert "root.py" in contents0[0]
@@ -448,7 +442,9 @@ def test_maxdepth_parameter(tmp_path: Path):
 
     # Test maxdepth=1 (root + level1)
     contents1, _, paths1 = clip_files.get_files_with_extension(
-        folder_path=str(tmp_path), file_extensions=[".py"], maxdepth=1
+        folder_path=str(tmp_path),
+        file_extensions=[".py"],
+        maxdepth=1,
     )
     assert len(contents1) == 2
     assert any("level1.py" in content for content in contents1)
@@ -456,7 +452,9 @@ def test_maxdepth_parameter(tmp_path: Path):
 
     # Test maxdepth=2 (root + level1 + level2)
     contents2, _, paths2 = clip_files.get_files_with_extension(
-        folder_path=str(tmp_path), file_extensions=[".py"], maxdepth=2
+        folder_path=str(tmp_path),
+        file_extensions=[".py"],
+        maxdepth=2,
     )
     assert len(contents2) == 3
     assert any("level2.py" in content for content in contents2)
@@ -464,13 +462,14 @@ def test_maxdepth_parameter(tmp_path: Path):
 
     # Test without maxdepth (all levels)
     contents_all, _, paths_all = clip_files.get_files_with_extension(
-        folder_path=str(tmp_path), file_extensions=[".py"]
+        folder_path=str(tmp_path),
+        file_extensions=[".py"],
     )
     assert len(contents_all) == 4
     assert any("level3.py" in content for content in contents_all)
 
 
-def test_hidden_files_and_directories(tmp_path: Path):
+def test_hidden_files_and_directories(tmp_path: Path) -> None:
     """Test that hidden files and directories are skipped."""
     # Create visible files
     (tmp_path / "visible.py").write_text("print('visible')", encoding="utf-8")
@@ -482,19 +481,22 @@ def test_hidden_files_and_directories(tmp_path: Path):
     visible_dir = tmp_path / "visible_dir"
     visible_dir.mkdir()
     (visible_dir / "file_in_visible_dir.py").write_text(
-        "print('in visible dir')", encoding="utf-8"
+        "print('in visible dir')",
+        encoding="utf-8",
     )
 
     # Create hidden directory with file
     hidden_dir = tmp_path / ".hidden_dir"
     hidden_dir.mkdir()
     (hidden_dir / "file_in_hidden_dir.py").write_text(
-        "print('in hidden dir')", encoding="utf-8"
+        "print('in hidden dir')",
+        encoding="utf-8",
     )
 
     # Get files
     contents, _, paths = clip_files.get_files_with_extension(
-        folder_path=str(tmp_path), file_extensions=[".py"]
+        folder_path=str(tmp_path),
+        file_extensions=[".py"],
     )
 
     # Check that only visible files are included
@@ -505,7 +507,7 @@ def test_hidden_files_and_directories(tmp_path: Path):
     assert not any("file_in_hidden_dir.py" in content for content in contents)
 
 
-def test_no_extensions_specified(tmp_path: Path):
+def test_no_extensions_specified(tmp_path: Path) -> None:
     """Test behavior when no file extensions are specified."""
     # Create various file types
     (tmp_path / "text.txt").write_text("Text file content", encoding="utf-8")
@@ -518,7 +520,8 @@ def test_no_extensions_specified(tmp_path: Path):
 
     # Get files with no extensions specified
     contents, _, paths = clip_files.get_files_with_extension(
-        folder_path=str(tmp_path), file_extensions=None
+        folder_path=str(tmp_path),
+        file_extensions=None,
     )
 
     # Should include all non-binary files
@@ -529,7 +532,7 @@ def test_no_extensions_specified(tmp_path: Path):
     assert not any("binary.bin" in content for content in contents)
 
 
-def test_main_with_maxdepth():
+def test_main_with_maxdepth() -> None:
     """Test main function with maxdepth parameter."""
     with tempfile.TemporaryDirectory() as temp_dir:
         # Create a directory structure with multiple levels
@@ -556,7 +559,7 @@ def test_main_with_maxdepth():
         assert "level2.py" not in clipboard_content
 
 
-def test_main_with_no_extensions():
+def test_main_with_no_extensions() -> None:
     """Test main function without specifying extensions."""
     with tempfile.TemporaryDirectory() as temp_dir:
         # Create test files of different types
@@ -579,7 +582,7 @@ def test_main_with_no_extensions():
         assert "binary.bin" not in clipboard_content
 
 
-def test_unicode_decode_error_handling(tmp_path: Path):
+def test_unicode_decode_error_handling(tmp_path: Path) -> None:
     """Test handling of files that can't be decoded as UTF-8."""
     # Create a text file
     (tmp_path / "text.py").write_text("print('Text file')", encoding="utf-8")
@@ -590,7 +593,8 @@ def test_unicode_decode_error_handling(tmp_path: Path):
 
     # Get files
     contents, _, paths = clip_files.get_files_with_extension(
-        folder_path=str(tmp_path), file_extensions=[".py"]
+        folder_path=str(tmp_path),
+        file_extensions=[".py"],
     )
 
     # Only the valid UTF-8 file should be included
