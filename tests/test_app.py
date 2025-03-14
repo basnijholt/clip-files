@@ -36,18 +36,13 @@ def test_get_files_with_extension() -> None:
         with open(file2_path, "w", encoding="utf-8") as f2:
             f2.write("print('Another file')\n")
 
-        file_contents, total_tokens, file_paths = clip_files.get_files_with_extension(
-            temp_dir,
-            file_extensions=[".py"],
-        )
+        file_contents, total_tokens, file_paths = clip_files.get_files_with_extension(temp_dir, file_extensions=[".py"])
 
         assert len(file_contents) == 2, "Should find two .py files"
         assert total_tokens > 0, "Total tokens should be greater than 0"
         assert file1_path in file_paths, "File path should be in the list"
         assert file2_path in file_paths, "File path should be in the list"
-        assert file_contents[0].startswith(
-            "# File:",
-        ), "File content should start with # File:"
+        assert file_contents[0].startswith("# File:"), "File content should start with # File:"
 
 
 def test_generate_combined_content_with_initial_file(tmp_path: Path) -> None:
@@ -93,7 +88,7 @@ def test_generate_combined_content_without_initial_file(tmp_path: Path) -> None:
     # Call the generate_combined_content function
     combined_content, total_tokens = clip_files.generate_combined_content(
         folder_path=str(tmp_path),
-        file_extensions=[".py"],  # Changed to file_extensions and made it a list
+        file_extensions=[".py"],
     )
 
     # Verify the combined content includes the default initial message
