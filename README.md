@@ -33,7 +33,7 @@ Makes it simple to paste in your entire project into e.g., ChatGPT or Claude.ai,
 ## :star2: Features
 
 - 📋 Collect files with a specific extension and copy their formatted contents to your clipboard.
-- 📁 Prepend each file with `# File: full_path_here` for clarity.
+- 📁 Surrounds each file with `<file path="...">...</file>` for easy parsing by LLMs.
 - 🧮 Calculate and display the total number of tokens used, compatible with GPT-4 tokenization.
 - 🔄 Easily handle and process multiple files in various directories.
 
