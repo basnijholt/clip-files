@@ -101,13 +101,14 @@ def get_files_with_extension(
                 try:
                     with open(file_path, encoding="utf-8") as f:
                         content = f.read()
+                except UnicodeDecodeError:
+                    # Skip files that can't be decoded as UTF-8 (likely binary)
+                    continue
+                else:
                     formatted_content = f"# File: {file_path}\n{content}"
                     file_contents.append(formatted_content)
                     total_tokens += get_token_count(formatted_content)
                     file_paths.append(file_path)
-                except UnicodeDecodeError:
-                    # Skip files that can't be decoded as UTF-8 (likely binary)
-                    continue
 
     return file_contents, total_tokens, file_paths
 
@@ -132,6 +133,7 @@ def generate_combined_content(
     Returns:
     -------
         Combined content as a single string and the total number of tokens.
+
     """
     if not os.path.isdir(folder_path):
         msg = f"{folder_path} is not a valid directory."
@@ -157,9 +159,7 @@ def generate_combined_content(
             if selected_files:
                 msg = f"No specified files with extensions {extensions_str} found in {folder_path}."
             else:
-                msg = (
-                    f"No files with extensions {extensions_str} found in {folder_path}."
-                )
+                msg = f"No files with extensions {extensions_str} found in {folder_path}."
         else:
             msg = f"No suitable files found in {folder_path}."
         raise ValueError(msg)
@@ -169,9 +169,7 @@ def generate_combined_content(
     )
     combined_initial_message = f"{initial_message}\n{file_list_message}\n\n"
 
-    combined_content = (
-        combined_initial_message + "\n\n".join(file_contents) + "\n\n" + FINAL_PROMPT
-    )
+    combined_content = combined_initial_message + "\n\n".join(file_contents) + "\n\n" + FINAL_PROMPT
 
     # Calculate tokens for all parts
     initial_tokens = get_token_count(combined_initial_message)
@@ -214,9 +212,7 @@ def generate_combined_content_with_specific_files(
 
         with open(file_path, encoding="utf-8") as f:
             content = f.read()
-            formatted_content = (
-                f'<file path="{file_path}">\n{content}\n</file path="{file_path}">'
-            )
+            formatted_content = f'<file path="{file_path}">\n{content}\n</file path="{file_path}">'
             file_contents.append(formatted_content)
             total_tokens += get_token_count(formatted_content)
 
@@ -235,9 +231,7 @@ def generate_combined_content_with_specific_files(
     combined_initial_message = f"{initial_message}\n{file_list_message}\n\n"
 
     # Combine all parts
-    combined_content = (
-        combined_initial_message + "\n\n".join(file_contents) + "\n\n" + FINAL_PROMPT
-    )
+    combined_content = combined_initial_message + "\n\n".join(file_contents) + "\n\n" + FINAL_PROMPT
 
     # Calculate tokens for all parts
     initial_tokens = get_token_count(combined_initial_message)
@@ -260,7 +254,7 @@ def is_binary(file_path: str) -> bool:
         with open(file_path, "rb") as f:
             chunk = f.read(1024)
             return b"\0" in chunk  # Binary files typically contain null bytes
-    except (IOError, PermissionError):
+    except (OSError, PermissionError):
         return True  # Assume binary if we can't read the file
 
 
@@ -295,11 +289,15 @@ def main() -> None:
     Parses command-line arguments, collects and formats files, and copies the result to the clipboard.
     """
     parser = argparse.ArgumentParser(
-        description=_DOC, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=_DOC,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     # Make 'folder' and 'extension' optional positional arguments
     parser.add_argument(
-        "folder", type=str, nargs="?", help="The folder to search for files."
+        "folder",
+        type=str,
+        nargs="?",
+        help="The folder to search for files.",
     )
     parser.add_argument(
         "extension",
@@ -336,18 +334,16 @@ def main() -> None:
     if args.files is None:
         if not args.folder:
             parser.error(
-                "the following argument is required: folder when --files is not used"
+                "the following argument is required: folder when --files is not used",
             )
     elif args.folder or args.extension:
         parser.error("folder and extension should not be provided when using --files")
 
     try:
         if args.files:
-            combined_content, total_tokens = (
-                generate_combined_content_with_specific_files(
-                    file_paths=args.files,
-                    initial_file_path=args.initial_file,
-                )
+            combined_content, total_tokens = generate_combined_content_with_specific_files(
+                file_paths=args.files,
+                initial_file_path=args.initial_file,
             )
         else:
             combined_content, total_tokens = generate_combined_content(
