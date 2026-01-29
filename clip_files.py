@@ -101,8 +101,9 @@ def get_files_with_extension(
                 try:
                     with open(file_path, encoding="utf-8") as f:
                         content = f.read()
-                except UnicodeDecodeError:
-                    # Skip files that can't be decoded as UTF-8 (likely binary)
+                except (UnicodeDecodeError, FileNotFoundError, OSError):
+                    # Skip files that can't be decoded as UTF-8 (likely binary),
+                    # broken symlinks, or other OS errors
                     continue
                 else:
                     formatted_content = f"# File: {file_path}\n{content}"
@@ -203,18 +204,19 @@ def generate_combined_content_with_specific_files(
     # Process each specified file
     for file_path in file_paths:
         if os.path.isdir(file_path):
-            msg = f"Specified path '{file_path}' is a directory. It will be skipped."
-            print(msg)
+            print(f"Skipping directory: {file_path}")
             continue
-        if not os.path.isfile(file_path):
-            msg = f"Specified file '{file_path}' does not exist."
-            raise ValueError(msg)
 
-        with open(file_path, encoding="utf-8") as f:
-            content = f.read()
-            formatted_content = f'<file path="{file_path}">\n{content}\n</file path="{file_path}">'
-            file_contents.append(formatted_content)
-            total_tokens += get_token_count(formatted_content)
+        try:
+            with open(file_path, encoding="utf-8") as f:
+                content = f.read()
+        except (UnicodeDecodeError, FileNotFoundError, OSError):
+            print(f"Skipping unreadable file: {file_path}")
+            continue
+
+        formatted_content = f'<file path="{file_path}">\n{content}\n</file path="{file_path}">'
+        file_contents.append(formatted_content)
+        total_tokens += get_token_count(formatted_content)
 
     # Handle initial message
     initial_message = ""

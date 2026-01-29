@@ -233,10 +233,20 @@ def test_generate_combined_content_with_specific_files() -> None:
         assert total_tokens > 0
 
 
-def test_generate_combined_content_with_specific_files_invalid_path() -> None:
+def test_generate_combined_content_with_specific_files_invalid_path(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """Test generate_combined_content_with_specific_files with invalid file path."""
-    with pytest.raises(ValueError, match="Specified file .* does not exist"):
-        clip_files.generate_combined_content_with_specific_files(["nonexistent.py"])
+    # Create one valid file
+    valid_file = tmp_path / "valid.py"
+    valid_file.write_text("print('valid')", encoding="utf-8")
+
+    # Call with valid + nonexistent file - nonexistent should be skipped
+    combined_content, _ = clip_files.generate_combined_content_with_specific_files(
+        [str(valid_file), "nonexistent.py"],
+    )
+
+    assert "valid.py" in combined_content
+    captured = capsys.readouterr()
+    assert "Skipping unreadable file: nonexistent.py" in captured.out
 
 
 def test_main_with_specific_files() -> None:
@@ -596,3 +606,83 @@ def test_unicode_decode_error_handling(tmp_path: Path) -> None:
     assert len(contents) == 1
     assert "text.py" in contents[0]
     assert not any("invalid_utf8.py" in content for content in contents)
+
+
+def test_broken_symlink_in_directory(tmp_path: Path) -> None:
+    """Test that broken symlinks are skipped in get_files_with_extension."""
+    # Create a valid Python file
+    (tmp_path / "valid.py").write_text("print('valid')", encoding="utf-8")
+
+    # Create a broken symlink (points to non-existent file)
+    broken_symlink = tmp_path / "broken.py"
+    broken_symlink.symlink_to("/nonexistent/path/to/file.py")
+
+    # Get files - should not raise an error
+    contents, _, paths = clip_files.get_files_with_extension(
+        folder_path=str(tmp_path),
+        file_extensions=[".py"],
+    )
+
+    # Only the valid file should be included
+    assert len(contents) == 1
+    assert "valid.py" in contents[0]
+    assert not any("broken.py" in content for content in contents)
+
+
+def test_broken_symlink_with_specific_files(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    """Test that broken symlinks are skipped with a warning in generate_combined_content_with_specific_files."""
+    # Create a valid file
+    valid_file = tmp_path / "valid.py"
+    valid_file.write_text("print('valid')", encoding="utf-8")
+
+    # Create a broken symlink
+    broken_symlink = tmp_path / "broken.py"
+    broken_symlink.symlink_to("/nonexistent/path/to/file.py")
+
+    # Call with both files - should not raise an error
+    combined_content, _ = clip_files.generate_combined_content_with_specific_files(
+        [str(valid_file), str(broken_symlink)],
+    )
+
+    # Valid file should be included
+    assert "valid.py" in combined_content
+    assert "print('valid')" in combined_content
+
+    # Check that a warning was printed
+    captured = capsys.readouterr()
+    assert "Skipping unreadable file" in captured.out
+    assert "broken.py" in captured.out
+
+
+def test_is_binary_with_broken_symlink(tmp_path: Path) -> None:
+    """Test that is_binary returns True for broken symlinks."""
+    # Create a broken symlink
+    broken_symlink = tmp_path / "broken_link"
+    broken_symlink.symlink_to("/nonexistent/path/to/file")
+
+    # Should return True (treat as binary/unreadable)
+    assert clip_files.is_binary(str(broken_symlink)) is True
+
+
+def test_valid_symlink_is_followed(tmp_path: Path) -> None:
+    """Test that valid symlinks are followed and their content is read."""
+    # Create a real file
+    real_file = tmp_path / "real.py"
+    real_file.write_text("print('from real file')", encoding="utf-8")
+
+    # Create a symlink to it
+    symlink = tmp_path / "symlink.py"
+    symlink.symlink_to(real_file)
+
+    # Get files
+    contents, _, paths = clip_files.get_files_with_extension(
+        folder_path=str(tmp_path),
+        file_extensions=[".py"],
+    )
+
+    # Both files should be included (real file and symlink pointing to it)
+    assert len(contents) == 2
+    assert any("real.py" in content for content in contents)
+    assert any("symlink.py" in content for content in contents)
+    # Both should have the same content
+    assert all("print('from real file')" in content for content in contents)
